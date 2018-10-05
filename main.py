@@ -9,12 +9,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-n = 5       # number atoms on each axis
-a = 0.38    # nm, distance between atoms
+n = 20      # number atoms on each axis
+a = 1#0.38    # nm, distance between atoms
 N = n ** 3  # number of all atoms
-m = 39.948  # mass
-T_0 = 100   # Temperature
-k = 0.00831 # Boltzman constant
+m = 1#39.948  # mass
+T_0 = 1     # Temperature
+k = 1#0.00831 # Boltzman constant
 save_to_file = False
 
 def e_kin_ax(T_0):
@@ -63,6 +63,7 @@ for j in range(n):
             r_i.append([x, y, z])
 r_i = np.array(r_i)
 
+'''
 # energie kinetyczne
 E_kin_i = []
 for j in range(n):
@@ -73,7 +74,7 @@ for j in range(n):
             E_kin_z = e_kin_ax(T_0)
             E_kin_i.append([E_kin_x, E_kin_y, E_kin_z])
 E_kin_i = np.array(E_kin_i)
-
+'''
 
 # momentum
 p_i = []
@@ -85,11 +86,9 @@ for j in range(N):
 p_i = np.array(p_i)
 
 # normalize momentum
-P = np.array([np.sum(p_i[:, 0]), np.sum(p_i[:, 1]), np.sum(p_i[:, 2])])
+P = np.array([np.sum(p_i[:, 0]), np.sum(p_i[:, 1]), np.sum(p_i[:, 2])])/N
 
 p_i[:] = p_i[:] - P
-
-#print(p_i)
 
 if save_to_file:
     delimiter = " "
@@ -102,15 +101,15 @@ if save_to_file:
 
     f.close()
 
-
-fig = plt.figure()
+#fig = plt.figure()
 #ax = Axes3D(fig)
 #ax.scatter3D(r_i[:, 0], r_i[:, 1], r_i[:, 2])
 #ax.scatter3D(E_kin_i[:,0], E_kin_i[:,1], E_kin_i[:,2])
 #ax.scatter3D(p_i[:,0], p_i[:,1], p_i[:,2])
 #ax.set_ylim3d(ax.get_xlim3d())
 #ax.set_zlim3d(ax.get_xlim3d())
-plt.hist(np.abs(p_i[:, 0]), 50)
-plt.hist(np.abs(p_i[:, 1]), 50)
-plt.hist(np.abs(p_i[:, 2]), 50)
+a = np.histogram(np.abs(p_i[:,0]), 30)
+b = np.histogram(np.abs(p_i[:,1]), 30)
+c = np.histogram(np.abs(p_i[:,2]), 30)
+d = np.histogram(np.abs(p_i[:,0]+p_i[:,1]+p_i[:,2]), 30)
 plt.show()
