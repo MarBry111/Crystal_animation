@@ -10,11 +10,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 n = 20      # number atoms on each axis
-a = 1#0.38    # nm, distance between atoms
+a = 0.38    # nm, distance between atoms
 N = n ** 3  # number of all atoms
-m = 1#39.948  # mass
-T_0 = 1     # Temperature
-k = 1#0.00831 # Boltzman constant
+m = 39.948  # mass
+T_0 = 100     # Temperature
+k = 0.00831 # Boltzman constant
 save_to_file = False
 
 def e_kin_ax(T_0):
@@ -87,8 +87,9 @@ p_i = np.array(p_i)
 
 # normalize momentum
 P = np.array([np.sum(p_i[:, 0]), np.sum(p_i[:, 1]), np.sum(p_i[:, 2])])/N
-
 p_i[:] = p_i[:] - P
+
+#dopisac sily
 
 if save_to_file:
     delimiter = " "
@@ -108,8 +109,10 @@ if save_to_file:
 #ax.scatter3D(p_i[:,0], p_i[:,1], p_i[:,2])
 #ax.set_ylim3d(ax.get_xlim3d())
 #ax.set_zlim3d(ax.get_xlim3d())
-a = np.histogram(np.abs(p_i[:,0]), 30)
-b = np.histogram(np.abs(p_i[:,1]), 30)
-c = np.histogram(np.abs(p_i[:,2]), 30)
-d = np.histogram(np.abs(p_i[:,0]+p_i[:,1]+p_i[:,2]), 30)
+ay, ax = np.histogram(np.abs(p_i[:,0]), 30)
+by, bx = np.histogram(np.abs(p_i[:,1]), 30)
+cy, cx = np.histogram(np.abs(p_i[:,2]), 30)
+plt.plot(.5*(ax[1:]+ax[:-1]), ay)
+plt.plot(.5*(bx[1:]+bx[:-1]), by)
+plt.plot(.5*(cx[1:]+cx[:-1]), cy)
 plt.show()
