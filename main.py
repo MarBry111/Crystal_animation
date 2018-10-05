@@ -6,7 +6,6 @@ Created on Wed Oct  3 15:42:35 2018
 """
 
 import numpy as np
-import random
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -19,10 +18,10 @@ k = 0.00831 # Boltzman constant
 save_to_file = False
 
 def e_kin_ax(T_0):
-    lam = random.random()
+    lam = np.random.random()
     return -1 / 2 * k * T_0 * np.log(lam)
 
-
+'''
 def momentum_ax(E_kin, m):
     temp = random.random()
     char = 0
@@ -31,6 +30,17 @@ def momentum_ax(E_kin, m):
     else:
         char = -1
     return char * np.sqrt(2 * m * E_kin)
+'''
+
+
+def momentum_ax(T_0, m):
+    temp = np.random.randint(0, 2)
+    char = 0
+    if temp == 1:
+        char = 1
+    else:
+        char = -1
+    return char * np.sqrt(2 * m * e_kin_ax(T_0))
 
 
 # vectors showing edges of cell
@@ -68,17 +78,16 @@ E_kin_i = np.array(E_kin_i)
 # momentum
 p_i = []
 for j in range(N):
-    p_x = momentum_ax(E_kin_i[j][0], m)
-    p_y = momentum_ax(E_kin_i[j][1], m)
-    p_z = momentum_ax(E_kin_i[j][2], m)
+    p_x = momentum_ax(T_0, m)
+    p_y = momentum_ax(T_0, m)
+    p_z = momentum_ax(T_0, m)
     p_i.append([p_x, p_y, p_z])
 p_i = np.array(p_i)
 
 # normalize momentum
 P = np.array([np.sum(p_i[:, 0]), np.sum(p_i[:, 1]), np.sum(p_i[:, 2])])
 
-for j in range(N):
-    p_i[j] = p_i[j] - P
+p_i[:] = p_i[:] - P
 
 #print(p_i)
 
@@ -95,10 +104,13 @@ if save_to_file:
 
 
 fig = plt.figure()
-ax = Axes3D(fig)
-ax.scatter3D(r_i[:, 0], r_i[:, 1], r_i[:, 2])
+#ax = Axes3D(fig)
+#ax.scatter3D(r_i[:, 0], r_i[:, 1], r_i[:, 2])
 #ax.scatter3D(E_kin_i[:,0], E_kin_i[:,1], E_kin_i[:,2])
 #ax.scatter3D(p_i[:,0], p_i[:,1], p_i[:,2])
-ax.set_ylim3d(ax.get_xlim3d())
-ax.set_zlim3d(ax.get_xlim3d())
+#ax.set_ylim3d(ax.get_xlim3d())
+#ax.set_zlim3d(ax.get_xlim3d())
+plt.hist(np.abs(p_i[:, 0]), 50)
+plt.hist(np.abs(p_i[:, 1]), 50)
+plt.hist(np.abs(p_i[:, 2]), 50)
 plt.show()
