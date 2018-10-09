@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 """
 Created on Wed Oct  3 15:42:35 2018
@@ -9,12 +10,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-n = 20      # number atoms on each axis
-a = 0.38    # nm, distance between atoms
+n = 2      # number atoms on each axis
+a = 1#0.38    # nm, distance between atoms
 N = n ** 3  # number of all atoms
-m = 39.948  # mass
-T_0 = 100     # Temperature
-k = 0.00831 # Boltzman constant
+m = 1#39.948  # mass
+T_0 = 1#100     # Temperature
+k = 1#0.00831 # Boltzman constant
 save_to_file = False
 
 
@@ -36,19 +37,22 @@ def momentum_ax(T_0, m):
 def force_P(epsilon, R, r_arr, index):
     r_i = r_arr[index]
     forces_P = []
-    for ii in N-1:
-        if r_arr[ii] != r_i:
+    for ii in range(N-1):
+        if ii != index:
             r_j = r_arr[ii]
-            r_ij = np.abs(r_i-r_j)
-            forces_P = np.append(12*epsilon*((R/r_ij)**12-(R/r_ij)**6)*(r_i-r_j)/r_ij**2)
-    return np.sum(forces_P)
+            r_ij = np.sqrt(np.sum((r_i-r_j)**2))
+            force = 12*epsilon*((R/r_ij)**12-(R/r_ij)**6)*(r_i-r_j)/r_ij**2
+            force_ax = (r_i - r_j)*force
+            forces_P.append(force_ax)
+    return np.sum(forces_P, axis=0)
 
 
-def force_s(r_i, L, f):
-    if r_i < L:
-        return 0
-    elif r_i >= L:
-        return f*(L - r_i)
+def force_S(r_i, L, f):
+    r = np.sqrt(np.sum(r_i**2))
+    if r < L:
+        return r_i*0
+    elif r >= L:
+        return r_i*(f*(L - r))
 
 # vectors showing edges of cell
 b_0 = np.array([a, 0, 0])
@@ -86,6 +90,16 @@ p_arr[:] = p_arr[:] - P
 #forces
 force_arr = []
 
+L = 1
+f = 1
+epsilon = 1
+R = 1
+
+for j in range(N):
+    force_arr.append(force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j)+force_S(r_i=r_arr[j], L=L, f=f))
+
+force_arr = np.array(force_arr)
+print(force_arr)
 
 if save_to_file:
     delimiter = " "
@@ -105,6 +119,7 @@ if save_to_file:
 #ax.scatter3D(p_i[:,0], p_i[:,1], p_i[:,2])
 #ax.set_ylim3d(ax.get_xlim3d())
 #ax.set_zlim3d(ax.get_xlim3d())
+'''
 ay, ax = np.histogram(np.abs(p_arr[:,0]), 30)
 by, bx = np.histogram(np.abs(p_arr[:,1]), 30)
 cy, cx = np.histogram(np.abs(p_arr[:,2]), 30)
@@ -112,3 +127,4 @@ plt.plot(.5*(ax[1:]+ax[:-1]), ay)
 plt.plot(.5*(bx[1:]+bx[:-1]), by)
 plt.plot(.5*(cx[1:]+cx[:-1]), cy)
 plt.show()
+'''
