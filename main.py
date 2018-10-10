@@ -32,9 +32,9 @@ def e_kin_ax(T_0):
 
 def momentum_ax(T_0, m):
     temp = np.random.randint(2, size=3)
-    for i in temp:
-        if i == 0:
-            i = -1
+    for j in range(len(temp)):
+        if temp[j] == 0:
+            temp[j] = -1
     return np.multiply(np.sqrt(2*m*e_kin_ax(T_0)), temp)
 
 
