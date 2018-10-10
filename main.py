@@ -20,18 +20,22 @@ save_to_file = False
 
 
 def e_kin_ax(T_0):
-    lam = np.random.random()
-    return -1 / 2 * k * T_0 * np.log(lam)
+    lam_x = np.random.random()
+    lam_y = np.random.random()
+    lam_z = np.random.random()
+    log_x = np.log(lam_x)
+    log_y = np.log(lam_y)
+    log_z = np.log(lam_z)
+    e_arr = np.array([log_x, log_y, log_z])
+    return -1/2*k*T_0*e_arr
 
 
 def momentum_ax(T_0, m):
-    temp = np.random.randint(0, 2)
-    char = 0
-    if temp == 1:
-        char = 1
-    else:
-        char = -1
-    return char * np.sqrt(2 * m * e_kin_ax(T_0))
+    temp = np.random.randint(2, size=3)
+    for i in temp:
+        if i == 0:
+            i = -1
+    return np.multiply(np.sqrt(2*m*e_kin_ax(T_0)), temp)
 
 
 def force_P(epsilon, R, r_arr, index):
@@ -54,6 +58,7 @@ def force_S(r_i, L, f):
     elif r >= L:
         return r_i*(f*(L - r))
 
+
 # vectors showing edges of cell
 b_0 = np.array([a, 0, 0])
 b_1 = np.array([a / 2, a * np.sqrt(3) / 2, 0])
@@ -74,13 +79,11 @@ for j in range(n):
             r_arr.append([x, y, z])
 r_arr = np.array(r_arr)
 
+
 # momentum
 p_arr = []
 for j in range(N):
-    p_x = momentum_ax(T_0, m)
-    p_y = momentum_ax(T_0, m)
-    p_z = momentum_ax(T_0, m)
-    p_arr.append([p_x, p_y, p_z])
+    p_arr.append(momentum_ax(T_0=T_0, m=m))
 p_arr = np.array(p_arr)
 
 # normalize momentum
@@ -97,6 +100,7 @@ R = 1
 
 for j in range(N):
     force_arr.append(force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j)+force_S(r_i=r_arr[j], L=L, f=f))
+    #print(force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j),force_S(r_i=r_arr[j], L=L, f=f))
 
 force_arr = np.array(force_arr)
 print(force_arr)
