@@ -17,14 +17,31 @@ m = 39.948  # mass
 T_0 = 100     # Temperature
 k = 0.00831 # Boltzman constant
 save_to_file = False
-print_3D_r = True
+print_3D_r = False
 print_momentum_chart = False
+file_xyz = 'xyz.dat'
+file_out = 'out.dat'
 
+'''
+# xyz.dat -> 
+x y z
+\n
+\n 
+x y z
 
+# out.dat
+t V E_k E_c T p
+'''
 L = 2.3 # nm
 f = 10000 # nm
 epsilon = 1
 R = 0.38 # nm
+
+tau = 0.01
+s_d = 100000
+s_0 = 1000
+s_xyz = 10
+s_out = 100
 
 ###2.1
 def e_kin_ax(T_0):
@@ -60,7 +77,26 @@ def force_S(r_i, L, f):
     if r < L:
         return r_i*0
     elif r >= L:
-        return r_i*(f*(L - r))
+		r_out = r_i
+		try:
+			r_out = r_i*(f*(L - r))
+		except TypeError:
+			print(r_i,f,L,r) 
+		return r_out
+
+			
+
+def generate_force_arr(r_arr, R, L, f, epsilon, N):
+	f_arr = []
+	f_S_arr = []
+	for jj in range(N):
+		f_S = force_S(r_i=r_arr[jj], L=L, f=f)
+		f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=jj)
+		f_arr.append(f_P+f_S)
+		f_S_arr.append(f_S)
+	f_arr = np.array(f_arr)
+	f_S_arr = np.array(f_S_arr)
+	return f_arr, f_S_arr
 
 def potential_S(r_i, L, f):
 	r = np.sqrt(np.sum(r_i**2))
@@ -80,13 +116,59 @@ def potential_P(epsilon, R, r_arr, index, N):
 			v_P.append(v)
 	return v_P
 
-###2.3
-#equation of move
-def r_t(r, p, m, tau, t):
-	r_tau = []
-	r_t = r
+def generate_v(r_arr, R, L, f, epsilon, N):
+	v_arr = []
+	for j in range(N):
+		v_P = potential_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j, N=N)
+		v_S = potential_S(r_i=r_arr[j], L=L, f=f)
+		v_P_sum = 0
+		for jj in range(j):
+			v_P_sum = v_P_sum + v_P[jj]
+		v_arr.append(v_P_sum+v_S)
+	v_arr = np.array(v_arr)
+	return v_arr
 	
+
+###2.3
+#p (t i 1/2 tau)
+def generate_p_arr_tau(p_arr, f_arr, tau):
+	p_arr_tau = p_arr + f_arr*tau/2
+	return p_arr_tau
+		
+	
+def generate_r_arr_t(r_arr, p_arr_tau, m, tau):
+	r_arr_t = r_arr + p_arr_tau*tau/m
+	return r_arr_t
+
+
+def generate_p_arr_t(p_arr_tau, f_arr_t, tau):
+	p_arr_t = p_arr_tau + f_arr_t*tau/2
+	return p_arr_t
+
+
+def save_to_file_xyz(file_xyz, r_arr):
+    delimiter = " "
+    with open(file_xyz,"a") as file_1:
+		for j in range(N):
+			file_1.write(str(r_arr[j][0])+delimiter+str(r_arr[j][1])+delimiter+str(r_arr[j][2])+"\n")
+		file_1.write("\n \n")
+
+
+def save_to_file_out(file_out, t, v, E_k, E_c, T, p):
+    delimiter = " "
+    with open(file_out,"a") as file_1:
+		file_1.write(str(t)+delimiter+str(v)+delimiter+str(E_k)+delimiter+str(E_c)+delimiter+str(T)+delimiter+str(E_c)+"\n \n")
+
+	
+
+
 ###2.1
+with open(file_xyz,"w") as file_1:
+	file_1.write("")
+	
+with open(file_out,"w") as file_2:
+	file_2.write("")
+
 # vectors showing edges of cell
 b_0 = np.array([a, 0, 0])
 b_1 = np.array([a / 2, a * np.sqrt(3) / 2, 0])
@@ -119,48 +201,57 @@ p_arr[:] = p_arr[:] - P
 
 ###2.2
 #forces
-force_arr = []
-force_S_arr = []
+f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+
+v_arr = generate_v(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+
+'''
 for j in range(N):
 	f_S = force_S(r_i=r_arr[j], L=L, f=f)
 	f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j)
-	force_arr.append(f_P+f_S)
-	force_S_arr.append(f_S)
-force_arr = np.array(force_arr)
-force_S_arr = np.array(force_S_arr)
-preasure_walls = np.sum(force_S_arr)/4/np.pi/(L**2)
-
-# potential (working good - time to improve)
-v_arr = []
-for j in range(N):
+	f_arr.append(f_P+f_S)
+	f_S_arr.append(f_S)
+	
 	v_P = potential_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j, N=N)
 	v_S = potential_S(r_i=r_arr[j], L=L, f=f)
 	v_P_sum = 0
 	for jj in range(j):
 		v_P_sum = v_P_sum + v_P[jj]
 	v_arr.append(v_P_sum+v_S)
-#correct = -669.xxx
+'''
+#correct = -669.xxx	
+#print(np.sum(v_arr))
+
+#f_arr = np.array(f_arr)
+#f_S_arr = np.array(f_S_arr)
+preasure_walls = np.sum(f_S_arr)/4/np.pi/(L**2)
 
 ###2.3
+for j in range(s_d+s_0):
+	p_arr_tau = generate_p_arr_tau(p_arr=p_arr, f_arr=f_arr, tau=tau)
 
-
-
-
-
+	r_arr = generate_r_arr_t(r_arr=r_arr, p_arr_tau=p_arr_tau, m=m, tau=tau)
+	'''
+	f_arr_t = []
+	for jj in range(N):
+		f_S = force_S(r_i=r_arr[jj], L=L, f=f)
+		f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=jj)
+		f_arr_t.append(f_P+f_S)
+	f_arr = np.array(f_arr_t)
+	'''
+	f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+	
+	p_arr = generate_p_arr_t(p_arr_tau=p_arr_tau, f_arr_t=f_arr, tau=tau)
+	if(j%s_xyz == 0):
+		save_to_file_xyz(file_xyz=file_xyz, r_arr=r_arr)
+	if(j%s_out == 0):
+		save_to_file_out(file_out=file_out, t=j, v=np.sum(v_arr), E_k=1, E_c=1, T=T_0, p=1)
+		
 
 
 
 
 ### plots save to file thios kinde of stuff
-
-if save_to_file:
-    delimiter = " "
-    f = open("data.txt","w+")
-    for j in range(N):
-        f.write(str(r_i[j][0])+delimiter+str(r_i[j][1])+delimiter+str(r_i[j][2]))
-        f.write("\n")
-
-    f.close()
 
 if print_3D_r:
 	fig = plt.figure()
@@ -172,9 +263,9 @@ if print_3D_r:
 	plt.show()
 
 if print_momentum_chart:
-	ay, ax = np.histogram(np.abs(p_arr[:,0]), 30)
-	by, bx = np.histogram(np.abs(p_arr[:,1]), 30)
-	cy, cx = np.histogram(np.abs(p_arr[:,2]), 30)
+	ay, ax = np.histogram(p_arr[:,0], 30)
+	by, bx = np.histogram(p_arr[:,1], 30)
+	cy, cx = np.histogram(p_arr[:,2], 30)
 	plt.plot(.5*(ax[1:]+ax[:-1]), ay)
 	plt.plot(.5*(bx[1:]+bx[:-1]), by)
 	plt.plot(.5*(cx[1:]+cx[:-1]), cy)
