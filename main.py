@@ -71,6 +71,7 @@ def generate_momentum_arr(e_kin_arr, m, N):
     return p_arr
 
 ###2.2
+###TO DOOO
 def force_P(epsilon, R, r_arr, index):
     r_i = r_arr[index]
     forces_P = []
@@ -109,13 +110,14 @@ def generate_force_arr(r_arr, R, L, f, epsilon, N):
     f_S_arr = np.array(f_S_arr)
     return f_arr, f_S_arr
 
-def potential_S(r_i, L, f):
-    r = np.sqrt(np.sum(r_i**2))
-    if r < L:
-        return 0
-    elif r >= L:
-        return f/2*(r - L)**2
+###DONE
+def potential_S(r_arr, L, f):
+    r = np.sqrt(np.sum(r_arr**2,axis=1))
+    v_s = f/2*(r - L)**2
+    v_s[v_s<L] =0
+    return v_s
 
+###TO DO
 def potential_P(epsilon, R, r_arr, index, N):
     r_i = r_arr[index]
     v_P = []
