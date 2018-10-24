@@ -7,15 +7,19 @@ Created on Wed Oct  3 15:42:35 2018
 """
 
 from functions_crystal_simulation import *
+import time 
 
 n = 5      # number atoms on each axis
 a = 0.38    # nm, distance between atoms
-N = n ** 3  # number of all atoms
 m = 39.948  # mass
 T_0 = 100     # Temperature
 k = 0.00831 # Boltzman constant
 file_xyz = 'xyz.dat'
 file_out = 'out.dat'
+temp = []
+temp.append(T_0)
+energy_k = 0
+energy_c = 0
 
 L = 2.3 # nm
 f = 10000 # nm
@@ -35,7 +39,9 @@ with open(file_xyz, "w") as file_1:
 with open(file_out, "w") as file_2:
     file_2.write("")
 
-# vectors showing edges of cell
+N = n ** 3  # number of all atoms (3)
+
+# vectors showing edges of cell (4)
 b_0 = np.array([a, 0, 0])
 b_1 = np.array([a / 2, a * np.sqrt(3) / 2, 0])
 b_2 = np.array([a / 2, a * np.sqrt(3) / 6, a * np.sqrt(2) / np.sqrt(3)])
@@ -44,19 +50,27 @@ b_2 = np.array([a / 2, a * np.sqrt(3) / 6, a * np.sqrt(2) / np.sqrt(3)])
 i = range(n)
 i = np.array(i)
 
-# coordinates
+# coordinates (5)
 r_arr = generate_r_arr(b0=b_0, b1=b_1, b2=b_2, n=n)
 
-#energy and momentum
+#energy (6)
 e_kin_arr = generate_e_kin_arr(temp_0=T_0, N=N, k=k)
+#momentum (7) (8)
 p_arr = generate_momentum_arr(e_kin_arr=e_kin_arr,m=m, N=N)
 
 #print_momentum_chart(p_arr=p_arr)
 ###2.2
 #forces
-f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+#f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
 
-v_arr = generate_v(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+f_S_arr, v_S_arr = force_potential_S(r_arr=r_arr, L=L, f=f)
+#v_arr = generate_v(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+
+f_P_arr, v_P_arr = force_potential_P(epsilon=epsilon, R=R, r_arr=r_arr, N=N)
+
+v_arr = v_S_arr+v_P_arr
+f_arr = f_S_arr+f_P_arr
+
 
 '''
 for j in range(N):
@@ -73,7 +87,7 @@ for j in range(N):
     v_arr.append(v_P_sum+v_S)
 '''
 #correct = -669.xxx
-#print(np.sum(v_arr))
+print(np.sum(v_arr))
 
 #f_arr = np.array(f_arr)
 #f_S_arr = np.array(f_S_arr)
@@ -86,18 +100,24 @@ for j in range(s_d+s_0):
     p_arr_tau = generate_p_arr_tau(p_arr=p_arr, f_arr=f_arr, tau=tau)
 
     r_arr = generate_r_arr_t(r_arr=r_arr, p_arr_tau=p_arr_tau, m=m, tau=tau)
-    '''
-    f_arr_t = []
-    for jj in range(N):
-        f_S = force_S(r_i=r_arr[jj], L=L, f=f)
-        f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=jj)
-        f_arr_t.append(f_P+f_S)
-    f_arr = np.array(f_arr_t)
-    '''
-    f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+
+    #f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+    #v_arr = generate_v(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
+    
+    f_S_arr, v_S_arr = force_potential_S(r_arr=r_arr, L=L, f=f)
+    f_P_arr, v_P_arr = force_potential_P(epsilon=epsilon, R=R, r_arr=r_arr, N=N)
+    
+    v_arr = v_S_arr+v_P_arr
+    f_arr = f_S_arr+f_P_arr
+    
     p_arr = generate_p_arr_t(p_arr_tau=p_arr_tau, f_arr_t=f_arr, tau=tau)
+    
+    preasure_walls = np.sum(f_S_arr)/4/np.pi/(L**2)
+    temp.append(generate_temp(p_arr=p_arr, N=N, k=k, m=m))
+    energy_c, energy_k = generate_H_Ek(p_arr, m, v_arr)
+    
     if(j%s_xyz == 0):
         save_to_file_xyz(file_xyz=file_xyz, r_arr=r_arr, N=N)
     if(j%s_out == 0):
-        save_to_file_out(file_out=file_out, t=j, v=np.sum(v_arr), E_k=1, E_c=1, T=T_0, p=1)
+        save_to_file_out(file_out=file_out, t=j, v=np.sum(v_arr), E_k=energy_k, E_c=energy_c, T=temp[-1], p=preasure_walls)
 

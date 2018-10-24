@@ -42,6 +42,7 @@ def generate_momentum_arr(e_kin_arr, m, N):
 
 ###2.2
 ## TO DO
+'''
 def force_P(epsilon, R, r_arr, index, N):
     r_i = r_arr[index]
     forces_P = []
@@ -53,16 +54,41 @@ def force_P(epsilon, R, r_arr, index, N):
             force_ax = (r_i - r_j)*force
             forces_P.append(force_ax)
     return np.sum(forces_P, axis=0)
+'''
+
+def force_potential_P(epsilon, R, r_arr, N):
+	f_P = np.empty(shape=(N,3))
+	v_P = np.zeros(shape=(N,1))
+	for j in range(N):
+		#ri - rj (array)
+		r_i = r_arr[j].reshape(1,3) 
+		# sprawdzic dokadnie wiersz a nie czy zawierta
+		r_j = r_arr[:,(r_arr[:]!=r_i[:])]
+		print(r_j.shape)
+		r_j = r_j.reshape(N-1, 3)
+		ri_j = (r_i-(r_arr!=r_i))
+		#skalar r_ij
+		r_ij = np.sqrt(np.sum((ri_j**2), axis=1))
+		r_ij = r_ij.reshape(N,1)
+		f_P[j] = np.sum((12*epsilon*((R/r_ij)**12-(R/r_ij)**6)/(r_ij**2)*ri_j), axis=0)
+		r_ij = r_ij.reshape(1,N)
+		v = epsilon*((R/r_ij)**12-2*(R/r_ij)**6)
+		v_P[j] = np.sum(epsilon*((R/r_ij[:j])**12-2*(R/r_ij[:j])**6))
+	return f_P, v_P
+		
 
 
-def force_S(r_arr, L, f):
+def force_potential_S(r_arr, L, f):
     r = np.sqrt(np.sum(r_arr**2, axis=1))
     f_s = r_arr*f*(L-r[:, None])
     f_s[r < L] = 0
-    return f_s
+    v_s = f/2*(r - L)**2
+    v_s[r < L] = 0
+    return f_s, v_s
 
 
 ## TO DO
+'''
 def generate_force_arr(r_arr, R, L, f, epsilon, N):
     f_arr = []
     f_S_arr = force_S(r_arr=r_arr, L=L, f=f)
@@ -71,7 +97,7 @@ def generate_force_arr(r_arr, R, L, f, epsilon, N):
         f_arr.append(f_P)
     f_arr = np.array(f_arr)
     return f_arr, f_S_arr
-
+'''
 
 def potential_S(r_arr, L, f):
     r = np.sqrt(np.sum(r_arr**2, axis=1))
@@ -81,6 +107,7 @@ def potential_S(r_arr, L, f):
 
 
 ## TO DO
+'''
 def potential_P(epsilon, R, r_arr, index, N):
     r_i = r_arr[index]
     v_P = []
@@ -105,7 +132,7 @@ def generate_v(r_arr, R, L, f, epsilon, N):
         v_arr.append(v_P_sum+v_S[j])
     v_arr = np.array(v_arr)
     return v_arr
-
+'''
 
 ###2.3
 #p (t i 1/2 tau)
@@ -122,6 +149,18 @@ def generate_r_arr_t(r_arr, p_arr_tau, m, tau):
 def generate_p_arr_t(p_arr_tau, f_arr_t, tau):
     p_arr_t = p_arr_tau + f_arr_t*tau/2
     return p_arr_t
+
+
+def generate_temp(p_arr, N, k, m):
+	temp = 2/3/N/k*np.sum(p_arr**2)/2/m
+	return temp
+
+
+def generate_H_Ek(p_arr, m, v_arr):
+	e_k = np.sum(p_arr**2)/2/m
+	e_c = e_k + np.sum(v_arr)
+	return e_c, e_k
+
 
 
 def save_to_file_xyz(file_xyz, r_arr, N):
