@@ -3,6 +3,17 @@ import matplotlib.pyplot as plt
 import itertools
 from mpl_toolkits.mplot3d import Axes3D
 
+'''
+# xyz.dat -> 
+x y z
+\n
+\n 
+x y z
+
+# out.dat
+t V E_k E_c T p
+'''
+
 ###2.1
 def generate_r_arr(b0, b1, b2, n):
     i_arr = np.arange(n)
@@ -30,7 +41,7 @@ def generate_momentum_arr(e_kin_arr, m, N):
 
 
 ###2.2
-###TO DOOO
+## TO DO
 def force_P(epsilon, R, r_arr, index, N):
     r_i = r_arr[index]
     forces_P = []
@@ -47,21 +58,11 @@ def force_P(epsilon, R, r_arr, index, N):
 def force_S(r_arr, L, f):
     r = np.sqrt(np.sum(r_arr**2, axis=1))
     f_s = r_arr*f*(L-r[:, None])
-    f_s[f_s < L] = 0
+    f_s[r < L] = 0
     return f_s
-    '''
-    if r < L:
-        return r_i*0
-    elif r >= L:
-        r_out = r_i
-        try:
-            r_out = r_i*(f*(L - r))
-        except TypeError:
-            print(r_i,f,L,r)
-        return r_out
-    '''
 
 
+## TO DO
 def generate_force_arr(r_arr, R, L, f, epsilon, N):
     f_arr = []
     f_S_arr = force_S(r_arr=r_arr, L=L, f=f)
@@ -72,7 +73,6 @@ def generate_force_arr(r_arr, R, L, f, epsilon, N):
     return f_arr, f_S_arr
 
 
-###DONE
 def potential_S(r_arr, L, f):
     r = np.sqrt(np.sum(r_arr**2, axis=1))
     v_s = f/2*(r - L)**2
@@ -80,7 +80,7 @@ def potential_S(r_arr, L, f):
     return v_s
 
 
-###TO DO
+## TO DO
 def potential_P(epsilon, R, r_arr, index, N):
     r_i = r_arr[index]
     v_P = []
@@ -92,6 +92,8 @@ def potential_P(epsilon, R, r_arr, index, N):
             v_P.append(v)
     return v_P
 
+
+## TO DO
 def generate_v(r_arr, R, L, f, epsilon, N):
     v_arr = []
     v_S = potential_S(r_arr=r_arr, L=L, f=f)
@@ -146,11 +148,10 @@ def print_momentum_chart(p_arr):
     plt.show()
 
 
-def print_3D(force_arr):
+def print_3D(arr):
     fig = plt.figure()
     ax = Axes3D(fig)
-    #ax.scatter3D(r_arr[:, 0], r_arr[:, 1], r_arr[:, 2])
-    ax.scatter3D(force_arr[:,0], force_arr[:,1], force_arr[:,2])
+    ax.scatter3D(arr[:, 0], arr[:, 1], arr[:, 2])
     ax.set_ylim3d(ax.get_xlim3d())
     ax.set_zlim3d(ax.get_xlim3d())
     plt.show()

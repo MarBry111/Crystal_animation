@@ -14,22 +14,9 @@ N = n ** 3  # number of all atoms
 m = 39.948  # mass
 T_0 = 100     # Temperature
 k = 0.00831 # Boltzman constant
-save_to_file = False
-print_3D_r = False
-print_momentum_chart = False
 file_xyz = 'xyz.dat'
 file_out = 'out.dat'
 
-'''
-# xyz.dat -> 
-x y z
-\n
-\n 
-x y z
-
-# out.dat
-t V E_k E_c T p
-'''
 L = 2.3 # nm
 f = 10000 # nm
 epsilon = 1
@@ -92,6 +79,7 @@ for j in range(N):
 #f_S_arr = np.array(f_S_arr)
 
 preasure_walls = np.sum(f_S_arr)/4/np.pi/(L**2)
+#print(preasure_walls)
 
 ###2.3
 for j in range(s_d+s_0):
