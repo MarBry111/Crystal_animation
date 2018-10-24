@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import itertools
-from mpl_toolkits.mplot3d import Axes3D
+
+import mpl_toolkits.mplot3d.axes3d as p3
+import matplotlib.animation as animation
 
 '''
 # xyz.dat -> 
@@ -14,6 +16,7 @@ x y z
 t V E_k E_c T p
 '''
 
+
 ###2.1
 def generate_r_arr(b0, b1, b2, n):
     i_arr = np.arange(n)
@@ -25,8 +28,7 @@ def generate_r_arr(b0, b1, b2, n):
 
 def generate_e_kin_arr(temp_0, N, k):
     rand_arr = np.random.rand(N, 3)
-    e_arr = np.log(rand_arr)
-    e_arr = -1/2*k*temp_0*e_arr
+    e_arr = -1/2*k*temp_0*np.log(rand_arr)
     return e_arr
 
 
@@ -57,34 +59,31 @@ def force_P(epsilon, R, r_arr, index, N):
 '''
 
 def force_potential_P(epsilon, R, r_arr, N):
-	f_P = np.empty(shape=(N,3))
-	v_P = np.zeros(shape=(N,1))
-	for j in range(N):
-		#ri - rj (array)
-		r_i = r_arr[j].reshape(1,3) 
-		# sprawdzic dokadnie wiersz a nie czy zawierta
-		r_j = r_arr[:,(r_arr[:]!=r_i[:])]
-		print(r_j.shape)
-		r_j = r_j.reshape(N-1, 3)
-		ri_j = (r_i-(r_arr!=r_i))
-		#skalar r_ij
-		r_ij = np.sqrt(np.sum((ri_j**2), axis=1))
-		r_ij = r_ij.reshape(N,1)
-		f_P[j] = np.sum((12*epsilon*((R/r_ij)**12-(R/r_ij)**6)/(r_ij**2)*ri_j), axis=0)
-		r_ij = r_ij.reshape(1,N)
-		v = epsilon*((R/r_ij)**12-2*(R/r_ij)**6)
-		v_P[j] = np.sum(epsilon*((R/r_ij[:j])**12-2*(R/r_ij[:j])**6))
-	return f_P, v_P
-		
+    f_P = np.empty(shape=(N,3))
+    v_P = np.zeros(shape=(N,1))
+    for j in range(N):
+        #ri - rj (array)
+        r_i = r_arr[j].reshape(1,3)
+        r_j = r_arr[np.any(r_arr!=r_i, axis=1)]
+        #r_j = r_j.reshape(N-1, 3)
+        ri_j = (r_i-r_j)
+        #skalar r_ij
+        r_ij = np.sqrt(np.sum((ri_j**2), axis=1))
+        r_ij = r_ij.reshape(N-1, 1)
+        f_P[j] = np.sum((12*epsilon*((R/r_ij)**12-(R/r_ij)**6)/(r_ij**2)*ri_j), axis=0)
+        r_ij = r_ij.reshape(1, N-1)
+        v_P[j] = np.sum(epsilon*((R/r_ij[0,:j])**12-2*(R/r_ij[0,:j])**6))
+    return f_P, v_P
 
 
-def force_potential_S(r_arr, L, f):
+
+def force_potential_S(r_arr, L, f, N):
     r = np.sqrt(np.sum(r_arr**2, axis=1))
     f_s = r_arr*f*(L-r[:, None])
     f_s[r < L] = 0
     v_s = f/2*(r - L)**2
     v_s[r < L] = 0
-    return f_s, v_s
+    return f_s.reshape(N, 3), v_s.reshape(N, 1)
 
 
 ## TO DO
@@ -152,14 +151,14 @@ def generate_p_arr_t(p_arr_tau, f_arr_t, tau):
 
 
 def generate_temp(p_arr, N, k, m):
-	temp = 2/3/N/k*np.sum(p_arr**2)/2/m
-	return temp
+    temp = 2/3/N/k*np.sum(p_arr**2)/2/m
+    return temp
 
 
 def generate_H_Ek(p_arr, m, v_arr):
-	e_k = np.sum(p_arr**2)/2/m
-	e_c = e_k + np.sum(v_arr)
-	return e_c, e_k
+    e_k = np.sum(p_arr**2)/2/m
+    e_c = e_k + np.sum(v_arr)
+    return e_c, e_k
 
 
 
@@ -184,13 +183,25 @@ def print_momentum_chart(p_arr):
     plt.plot(.5*(ax[1:]+ax[:-1]), ay)
     plt.plot(.5*(bx[1:]+bx[:-1]), by)
     plt.plot(.5*(cx[1:]+cx[:-1]), cy)
+    plt.xlim(-plt.xlim()[1], plt.xlim()[1])
     plt.show()
 
 
 def print_3D(arr):
     fig = plt.figure()
-    ax = Axes3D(fig)
+    ax = p3.Axes3D(fig)
     ax.scatter3D(arr[:, 0], arr[:, 1], arr[:, 2])
     ax.set_ylim3d(ax.get_xlim3d())
     ax.set_zlim3d(ax.get_xlim3d())
+    plt.show()
+
+
+##TO DO
+def animation():
+    fig = plt.figure()
+    ax = p3.Axes3D(fig)
+    ax.set_title('3D Crystal Animation')
+    line_ani = animation.FuncAnimation(fig, update_lines, 25, fargs=(data, lines),
+                                       interval=50, blit=False)
+
     plt.show()

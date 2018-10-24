@@ -27,7 +27,7 @@ epsilon = 1
 R = 0.38 # nm
 
 tau = 0.01
-s_d = 100000
+s_d = 10000
 s_0 = 1000
 s_xyz = 10
 s_out = 100
@@ -63,7 +63,7 @@ p_arr = generate_momentum_arr(e_kin_arr=e_kin_arr,m=m, N=N)
 #forces
 #f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
 
-f_S_arr, v_S_arr = force_potential_S(r_arr=r_arr, L=L, f=f)
+f_S_arr, v_S_arr = force_potential_S(r_arr=r_arr, L=L, f=f, N=N)
 #v_arr = generate_v(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
 
 f_P_arr, v_P_arr = force_potential_P(epsilon=epsilon, R=R, r_arr=r_arr, N=N)
@@ -71,23 +71,8 @@ f_P_arr, v_P_arr = force_potential_P(epsilon=epsilon, R=R, r_arr=r_arr, N=N)
 v_arr = v_S_arr+v_P_arr
 f_arr = f_S_arr+f_P_arr
 
-
-'''
-for j in range(N):
-    f_S = force_S(r_i=r_arr[j], L=L, f=f)
-    f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j)
-    f_arr.append(f_P+f_S)
-    f_S_arr.append(f_S)
-    
-    v_P = potential_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j, N=N)
-    v_S = potential_S(r_i=r_arr[j], L=L, f=f)
-    v_P_sum = 0
-    for jj in range(j):
-        v_P_sum = v_P_sum + v_P[jj]
-    v_arr.append(v_P_sum+v_S)
-'''
 #correct = -669.xxx
-print(np.sum(v_arr))
+#print(np.sum(v_arr))
 
 #f_arr = np.array(f_arr)
 #f_S_arr = np.array(f_S_arr)
@@ -95,6 +80,7 @@ print(np.sum(v_arr))
 preasure_walls = np.sum(f_S_arr)/4/np.pi/(L**2)
 #print(preasure_walls)
 
+start = time.time()
 ###2.3
 for j in range(s_d+s_0):
     p_arr_tau = generate_p_arr_tau(p_arr=p_arr, f_arr=f_arr, tau=tau)
@@ -104,7 +90,7 @@ for j in range(s_d+s_0):
     #f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
     #v_arr = generate_v(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
     
-    f_S_arr, v_S_arr = force_potential_S(r_arr=r_arr, L=L, f=f)
+    f_S_arr, v_S_arr = force_potential_S(r_arr=r_arr, L=L, f=f, N=N)
     f_P_arr, v_P_arr = force_potential_P(epsilon=epsilon, R=R, r_arr=r_arr, N=N)
     
     v_arr = v_S_arr+v_P_arr
@@ -115,7 +101,10 @@ for j in range(s_d+s_0):
     preasure_walls = np.sum(f_S_arr)/4/np.pi/(L**2)
     temp.append(generate_temp(p_arr=p_arr, N=N, k=k, m=m))
     energy_c, energy_k = generate_H_Ek(p_arr, m, v_arr)
-    
+
+    if(j==2000):
+        end = time.time()
+        print("2k pekło: ", end - start)
     if(j%s_xyz == 0):
         save_to_file_xyz(file_xyz=file_xyz, r_arr=r_arr, N=N)
     if(j%s_out == 0):

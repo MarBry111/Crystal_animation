@@ -1,36 +1,64 @@
-import itertools
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+import mpl_toolkits.mplot3d.axes3d as p3
+import matplotlib.animation as animation
 
-n = 2      # number atoms on each axis
-a = 0.38    # nm, distance between atoms
-N = n ** 3  # number of all atoms
-m = 39.948  # mass
-
-
-def generate_r_arr(b0, b1, b2, n):
-    i_arr = np.arange(n)
-    r_arr = np.array(list(p for p in itertools.product(i_arr, repeat=3)), dtype=float)
-    for j in range(3):
-        r_arr[:, j] = (r_arr[:, 0]-(n-1)/2)*b0[j] + (r_arr[:, 1]-(n-1)/2)*b1[j] + (r_arr[:, 2]-(n-1)/2)*b2[j]
-    return r_arr
+# Fixing random state for reproducibility
+np.random.seed(19680801)
 
 
-def print_3D_r(r_arr):
-    fig = plt.figure()
-    ax = Axes3D(fig)
-    ax.scatter3D(r_arr[:, 0], r_arr[:, 1], r_arr[:, 2])
-    ax.set_ylim3d(ax.get_xlim3d())
-    ax.set_zlim3d(ax.get_xlim3d())
-    plt.show()
+def Gen_RandLine(length, dims=2):
+    """
+    Create a line using a random walk algorithm
+
+    length is the number of points for the line.
+    dims is the number of dimensions the line has.
+    """
+    lineData = np.empty((dims, length))
+    lineData[:, 0] = np.random.rand(dims)
+    for index in range(1, length):
+        # scaling the random numbers by 0.1 so
+        # movement is small compared to position.
+        # subtraction by 0.5 is to change the range to [-0.5, 0.5]
+        # to allow a line to move backwards.
+        step = ((np.random.rand(dims) - 0.5) * 0.1)
+        lineData[:, index] = lineData[:, index - 1] + step
+
+    return lineData
 
 
-b_0 = np.array([a, 0, 0])
-b_1 = np.array([a / 2, a * np.sqrt(3) / 2, 0])
-b_2 = np.array([a / 2, a * np.sqrt(3) / 6, a * np.sqrt(2) / np.sqrt(3)])
-r_arr1 = generate_r_arr(b0=b_0, b1=b_1, b2=b_2, n=n)
+def update_lines(num, dataLines, lines):
+    for line, data in zip(lines, dataLines):
+        # NOTE: there is no .set_data() for 3 dim data...
+        line.set_data(data[0:2, :num])
+        line.set_3d_properties(data[2, :num])
+    return lines
 
-p = np.zeros(shape=(3, 3))
-p = p-np.array([1,1,1])
-print(p)
+# Attaching 3D axis to the figure
+fig = plt.figure()
+ax = p3.Axes3D(fig)
+
+# Fifty lines of random 3-D lines
+data = [Gen_RandLine(25, 3) for index in range(50)]
+
+# Creating fifty line objects.
+# NOTE: Can't pass empty arrays into 3d version of plot()
+lines = [ax.plot(dat[0, 0:1], dat[1, 0:1], dat[2, 0:1])[0] for dat in data]
+
+# Setting the axes properties
+ax.set_xlim3d([0.0, 1.0])
+ax.set_xlabel('X')
+
+ax.set_ylim3d([0.0, 1.0])
+ax.set_ylabel('Y')
+
+ax.set_zlim3d([0.0, 1.0])
+ax.set_zlabel('Z')
+
+ax.set_title('3D Test')
+
+# Creating the Animation object
+line_ani = animation.FuncAnimation(fig, update_lines, 25, fargs=(data, lines),
+                                   interval=50, blit=False)
+
+plt.show()
