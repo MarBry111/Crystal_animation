@@ -1,47 +1,8 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Oct  3 15:42:35 2018
+import numpy as np
+import matplotlib.pyplot as plt
+import itertools
+from mpl_toolkits.mplot3d import Axes3D
 
-@author: marbry
-"""
-
-from functions_crystal_simulation import *
-
-n = 5      # number atoms on each axis
-a = 0.38    # nm, distance between atoms
-N = n ** 3  # number of all atoms
-m = 39.948  # mass
-T_0 = 100     # Temperature
-k = 0.00831 # Boltzman constant
-save_to_file = False
-print_3D_r = False
-print_momentum_chart = False
-file_xyz = 'xyz.dat'
-file_out = 'out.dat'
-
-'''
-# xyz.dat -> 
-x y z
-\n
-\n 
-x y z
-
-# out.dat
-t V E_k E_c T p
-'''
-L = 2.3 # nm
-f = 10000 # nm
-epsilon = 1
-R = 0.38 # nm
-
-tau = 0.01
-s_d = 100000
-s_0 = 1000
-s_xyz = 10
-s_out = 100
-
-'''
 ###2.1
 def generate_r_arr(b0, b1, b2, n):
     i_arr = np.arange(n)
@@ -51,7 +12,7 @@ def generate_r_arr(b0, b1, b2, n):
     return r_arr
 
 
-def generate_e_kin_arr(temp_0, N):
+def generate_e_kin_arr(temp_0, N, k):
     rand_arr = np.random.rand(N, 3)
     e_arr = np.log(rand_arr)
     e_arr = -1/2*k*temp_0*e_arr
@@ -70,7 +31,7 @@ def generate_momentum_arr(e_kin_arr, m, N):
 
 ###2.2
 ###TO DOOO
-def force_P(epsilon, R, r_arr, index):
+def force_P(epsilon, R, r_arr, index, N):
     r_i = r_arr[index]
     forces_P = []
     for ii in range(N):
@@ -89,7 +50,6 @@ def force_S(r_arr, L, f):
     f_s[f_s < L] = 0
     return f_s
     '''
-'''
     if r < L:
         return r_i*0
     elif r >= L:
@@ -100,13 +60,13 @@ def force_S(r_arr, L, f):
             print(r_i,f,L,r)
         return r_out
     '''
-'''
+
 
 def generate_force_arr(r_arr, R, L, f, epsilon, N):
     f_arr = []
     f_S_arr = force_S(r_arr=r_arr, L=L, f=f)
     for jj in range(N):
-        f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=jj)
+        f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=jj, N=N)
         f_arr.append(f_P)
     f_arr = np.array(f_arr)
     return f_arr, f_S_arr
@@ -162,7 +122,7 @@ def generate_p_arr_t(p_arr_tau, f_arr_t, tau):
     return p_arr_t
 
 
-def save_to_file_xyz(file_xyz, r_arr):
+def save_to_file_xyz(file_xyz, r_arr, N):
     delimiter = " "
     with open(file_xyz,"a") as file_1:
         for j in range(N):
@@ -194,78 +154,3 @@ def print_3D(force_arr):
     ax.set_ylim3d(ax.get_xlim3d())
     ax.set_zlim3d(ax.get_xlim3d())
     plt.show()
-'''
-
-
-###2.1
-with open(file_xyz,"w") as file_1:
-    file_1.write("")
-
-with open(file_out,"w") as file_2:
-    file_2.write("")
-
-# vectors showing edges of cell
-b_0 = np.array([a, 0, 0])
-b_1 = np.array([a / 2, a * np.sqrt(3) / 2, 0])
-b_2 = np.array([a / 2, a * np.sqrt(3) / 6, a * np.sqrt(2) / np.sqrt(3)])
-
-# array of values dla i_0 i_1 i_2 (atoms' indexes)
-i = range(n)
-i = np.array(i)
-
-# coordinates
-r_arr = generate_r_arr(b0=b_0, b1=b_1, b2=b_2, n=n)
-
-#energy and momentum
-e_kin_arr = generate_e_kin_arr(temp_0=T_0, N=N, k=k)
-p_arr = generate_momentum_arr(e_kin_arr=e_kin_arr,m=m, N=N)
-
-#print_momentum_chart(p_arr=p_arr)
-###2.2
-#forces
-f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
-
-v_arr = generate_v(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
-
-'''
-for j in range(N):
-    f_S = force_S(r_i=r_arr[j], L=L, f=f)
-    f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j)
-    f_arr.append(f_P+f_S)
-    f_S_arr.append(f_S)
-    
-    v_P = potential_P(epsilon=epsilon, R=R, r_arr=r_arr, index=j, N=N)
-    v_S = potential_S(r_i=r_arr[j], L=L, f=f)
-    v_P_sum = 0
-    for jj in range(j):
-        v_P_sum = v_P_sum + v_P[jj]
-    v_arr.append(v_P_sum+v_S)
-'''
-#correct = -669.xxx
-#print(np.sum(v_arr))
-
-#f_arr = np.array(f_arr)
-#f_S_arr = np.array(f_S_arr)
-
-preasure_walls = np.sum(f_S_arr)/4/np.pi/(L**2)
-
-###2.3
-for j in range(s_d+s_0):
-    p_arr_tau = generate_p_arr_tau(p_arr=p_arr, f_arr=f_arr, tau=tau)
-
-    r_arr = generate_r_arr_t(r_arr=r_arr, p_arr_tau=p_arr_tau, m=m, tau=tau)
-    '''
-    f_arr_t = []
-    for jj in range(N):
-        f_S = force_S(r_i=r_arr[jj], L=L, f=f)
-        f_P = force_P(epsilon=epsilon, R=R, r_arr=r_arr, index=jj)
-        f_arr_t.append(f_P+f_S)
-    f_arr = np.array(f_arr_t)
-    '''
-    f_arr, f_S_arr = generate_force_arr(r_arr=r_arr, R=R, L=L, f=f, epsilon=epsilon, N=N)
-    p_arr = generate_p_arr_t(p_arr_tau=p_arr_tau, f_arr_t=f_arr, tau=tau)
-    if(j%s_xyz == 0):
-        save_to_file_xyz(file_xyz=file_xyz, r_arr=r_arr, N=N)
-    if(j%s_out == 0):
-        save_to_file_out(file_out=file_out, t=j, v=np.sum(v_arr), E_k=1, E_c=1, T=T_0, p=1)
-
