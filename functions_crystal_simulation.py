@@ -35,9 +35,10 @@ def generate_e_kin_arr(temp_0, N, k):
 def generate_momentum_arr(e_kin_arr, m, N):
     temp = np.random.randint(2, size=(N, 3))
     temp[temp == 0] = -1
-    p_arr = np.sqrt(2*m*e_kin_arr)
+    p_arr = np.sqrt(2*m*e_kin_arr)*temp
     #normalize momentum
-    P = np.array([np.sum(p_arr[:, 0]), np.sum(p_arr[:, 1]), np.sum(p_arr[:, 2])]) / N
+    #P = np.array([np.sum(p_arr[:, 0]), np.sum(p_arr[:, 1]), np.sum(p_arr[:, 2])]) / N
+    P = np.sum(p_arr, axis=0) / N
     p_arr = p_arr - P
     return p_arr
 
@@ -177,9 +178,9 @@ def save_to_file_out(file_out, t, v, E_k, E_c, T, p):
 
 
 def print_momentum_chart(p_arr):
-    ay, ax = np.histogram(p_arr[:,0], 30)
-    by, bx = np.histogram(p_arr[:,1], 30)
-    cy, cx = np.histogram(p_arr[:,2], 30)
+    ay, ax = np.histogram(p_arr[:, 0], 30)
+    by, bx = np.histogram(p_arr[:, 1], 30)
+    cy, cx = np.histogram(p_arr[:, 2], 30)
     plt.plot(.5*(ax[1:]+ax[:-1]), ay)
     plt.plot(.5*(bx[1:]+bx[:-1]), by)
     plt.plot(.5*(cx[1:]+cx[:-1]), cy)

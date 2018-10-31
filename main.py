@@ -70,7 +70,7 @@ f_P_arr, v_P_arr = force_potential_P(epsilon=epsilon, R=R, r_arr=r_arr, N=N)
 
 v_arr = v_S_arr+v_P_arr
 f_arr = f_S_arr+f_P_arr
-
+print_3D(arr=r_arr)
 #correct = -669.xxx
 #print(np.sum(v_arr))
 
